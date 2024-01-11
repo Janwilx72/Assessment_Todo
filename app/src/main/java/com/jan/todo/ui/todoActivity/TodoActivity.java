@@ -24,6 +24,7 @@ import com.jan.todo.core.database.repositories.TodoRepository;
 import com.jan.todo.core.helpers.DateHelper;
 import com.jan.todo.core.helpers.IconHelper;
 import com.jan.todo.core.models.IconModel;
+import com.jan.todo.ui.components.dialogs.TodoAddDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,6 +100,36 @@ public class TodoActivity extends AppCompatActivity
 
             filterItems(_searchView.getQuery().toString());
         });
+    }
+
+    public void clickAddTodo(final View view)
+    {
+        clickViewTodoDialog(null);
+    }
+
+    public void clickViewTodoDialog(final TodoItemEntity entity)
+    {
+        final TodoAddDialog dialog = new TodoAddDialog(entity);
+        dialog.setListener(new TodoAddDialog.TodoDialogListener()
+        {
+            @Override
+            public void onCreateClick(final TodoItemEntity todoItem)
+            {
+                if (todoItem.getId() == 0)
+                    _viewmodel.insertTodoItem(todoItem);
+                else
+                    _viewmodel.updateTodoItem(todoItem);
+
+                dialog.dismiss();
+            }
+
+            @Override
+            public void onCancelClick()
+            {
+                dialog.dismiss();
+            }
+        });
+        dialog.show(getSupportFragmentManager(), "AddTodo");
     }
 
     private void filterItems(final String searchText)
