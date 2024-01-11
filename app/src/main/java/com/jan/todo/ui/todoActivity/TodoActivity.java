@@ -207,7 +207,7 @@ public class TodoActivity extends AppCompatActivity
         _adapter.notifyDataSetChanged();
     }
 
-    private static int countOccurrences(final String body, final String title, final String sortText)
+    private int countOccurrences(final String body, final String title, final String sortText)
     {
         final String fullText = body.concat(" ").concat(title);
 
@@ -233,10 +233,10 @@ public class TodoActivity extends AppCompatActivity
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
+        public ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType)
         {
-            LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-            View listItem = layoutInflater.inflate(R.layout.row_todo, parent, false);
+            final LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
+            final View listItem = layoutInflater.inflate(R.layout.row_todo, parent, false);
             return new ViewHolder(listItem);
         }
 
