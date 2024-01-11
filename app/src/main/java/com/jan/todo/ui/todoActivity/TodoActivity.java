@@ -24,6 +24,7 @@ import com.jan.todo.core.database.repositories.TodoRepository;
 import com.jan.todo.core.helpers.DateHelper;
 import com.jan.todo.core.helpers.IconHelper;
 import com.jan.todo.core.models.IconModel;
+import com.jan.todo.ui.components.dialogs.ItemMenuDialog;
 import com.jan.todo.ui.components.dialogs.TodoAddDialog;
 
 import java.util.ArrayList;
@@ -176,6 +177,28 @@ public class TodoActivity extends AppCompatActivity
             {
                 holder.tvDueDate.setTextColor(Color.RED);
             }
+
+            holder.ivMenuSelector.setOnClickListener(view ->
+            {
+                final ItemMenuDialog dialog = new ItemMenuDialog(data);
+                dialog.setListener(new ItemMenuDialog.ItemMenuDialogListener()
+                {
+                    @Override
+                    public void onEditClick(TodoItemEntity itemEntity)
+                    {
+                        clickViewTodoDialog(itemEntity);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onDeleteClick(TodoItemEntity itemEntity)
+                    {
+                        _viewmodel.deleteTodoItem(itemEntity);
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show(getSupportFragmentManager(), "ItemMenuDialog");
+            });
         }
 
         @Override
