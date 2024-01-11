@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -25,10 +27,15 @@ import com.jan.todo.core.helpers.DateHelper;
 import com.jan.todo.core.helpers.IconHelper;
 import com.jan.todo.core.models.IconModel;
 import com.jan.todo.ui.components.dialogs.ItemMenuDialog;
+import com.jan.todo.ui.components.dialogs.SortDialog;
 import com.jan.todo.ui.components.dialogs.TodoAddDialog;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -144,6 +151,78 @@ public class TodoActivity extends AppCompatActivity
         _filteredTodoList.addAll(tempList);
         _adapter.notifyDataSetChanged();
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item)
+    {
+        if (item.getItemId() == R.id.mnuSort)
+        {
+            openSortDialog();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void openSortDialog()
+    {
+        final SortDialog dialog = new SortDialog();
+        dialog.setListener(new SortDialog.SortDialogListener() {
+            @Override
+            public void SortClicked(boolean isAscending, String sortText)
+            {
+                sortItems(isAscending, sortText);
+            }
+
+            @Override
+            public void SortByDefault()
+            {
+                _filteredTodoList.clear();
+                _filteredTodoList.addAll(_todoList);
+                _adapter.notifyDataSetChanged();
+            }
+        });
+        dialog.show(getSupportFragmentManager(), "SortDialog");
+    }
+
+    private void sortItems(final boolean isAscending, final String sortText)
+    {
+        _filteredTodoList.sort((todo1, todo2) ->
+        {
+            final int todo1Count = countOccurrences(todo1.getBody(), todo1.getTitle(), sortText);
+            final int todo2Count = countOccurrences(todo2.getBody(),todo2.getTitle(), sortText);
+
+            // Compare based on the specified order
+            return !isAscending
+                    ? Integer.compare(todo1Count, todo2Count)
+                    : Integer.compare(todo2Count, todo1Count);
+        });
+
+        _adapter.notifyDataSetChanged();
+    }
+
+    private static int countOccurrences(final String body, final String title, final String sortText)
+    {
+        final String fullText = body.concat(" ").concat(title);
+
+        final Pattern pattern = Pattern.compile("\\b" + Pattern.quote(sortText) + "\\b", Pattern.CASE_INSENSITIVE);
+        final Matcher matcher = pattern.matcher(fullText);
+
+        int count = 0;
+        while (matcher.find())
+        {
+            count++;
+        }
+
+        return count;
+    }
+
 
     class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder>
     {
