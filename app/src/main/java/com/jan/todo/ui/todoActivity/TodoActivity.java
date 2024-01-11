@@ -1,6 +1,7 @@
 package com.jan.todo.ui.todoActivity;
 
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.zxing.WriterException;
 import com.jan.todo.R;
 import com.jan.todo.core.dagger.components.DaggerTodoComponent;
 import com.jan.todo.core.dagger.modules.TodoModule;
@@ -25,8 +27,10 @@ import com.jan.todo.core.database.entities.TodoItemEntity;
 import com.jan.todo.core.database.repositories.TodoRepository;
 import com.jan.todo.core.helpers.DateHelper;
 import com.jan.todo.core.helpers.IconHelper;
+import com.jan.todo.core.helpers.QRCodeHelper;
 import com.jan.todo.core.models.IconModel;
 import com.jan.todo.ui.components.dialogs.ItemMenuDialog;
+import com.jan.todo.ui.components.dialogs.QRCodeDialog;
 import com.jan.todo.ui.components.dialogs.SortDialog;
 import com.jan.todo.ui.components.dialogs.TodoAddDialog;
 
@@ -45,6 +49,7 @@ public class TodoActivity extends AppCompatActivity
     @Inject
     public TodoRepository _todoRepository;
     @Inject public DateHelper _dateHelper;
+    @Inject public QRCodeHelper _qrCodeHelper;
 
     private SearchView _searchView;
 
@@ -173,7 +178,8 @@ public class TodoActivity extends AppCompatActivity
     private void openSortDialog()
     {
         final SortDialog dialog = new SortDialog();
-        dialog.setListener(new SortDialog.SortDialogListener() {
+        dialog.setListener(new SortDialog.SortDialogListener()
+        {
             @Override
             public void SortClicked(boolean isAscending, String sortText)
             {
@@ -263,22 +269,43 @@ public class TodoActivity extends AppCompatActivity
                 dialog.setListener(new ItemMenuDialog.ItemMenuDialogListener()
                 {
                     @Override
-                    public void onEditClick(TodoItemEntity itemEntity)
+                    public void onEditClick(final TodoItemEntity itemEntity)
                     {
                         clickViewTodoDialog(itemEntity);
                         dialog.dismiss();
                     }
 
                     @Override
-                    public void onDeleteClick(TodoItemEntity itemEntity)
+                    public void onDeleteClick(final TodoItemEntity itemEntity)
                     {
                         _viewmodel.deleteTodoItem(itemEntity);
                         dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onShareClick(final TodoItemEntity itemEntity)
+                    {
+                        showQRDialog(itemEntity);
                     }
                 });
                 dialog.show(getSupportFragmentManager(), "ItemMenuDialog");
             });
         }
+
+        private void showQRDialog(final TodoItemEntity itemEntity)
+        {
+            try
+            {
+                final Bitmap imgCode = _qrCodeHelper.generateQRCodeImage(itemEntity.toString(), 600, 600);
+                QRCodeDialog dialog = new QRCodeDialog(imgCode);
+                dialog.show(getSupportFragmentManager(), "QRCodeDialog");
+            }
+            catch (final WriterException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
 
         @Override
         public int getItemCount() {

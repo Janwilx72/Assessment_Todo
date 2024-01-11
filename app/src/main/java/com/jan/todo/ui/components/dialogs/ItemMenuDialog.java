@@ -27,6 +27,7 @@ public class ItemMenuDialog extends DialogFragment
     {
         void onEditClick(final TodoItemEntity itemEntity);
         void onDeleteClick(final TodoItemEntity itemEntity);
+        void onShareClick(final TodoItemEntity itemEntity);
     }
 
     private TodoItemEntity _entity;
@@ -66,6 +67,7 @@ public class ItemMenuDialog extends DialogFragment
     {
         final Button btnDelete = layoutView.findViewById(R.id.btnDelete);
         final Button btnEdit = layoutView.findViewById(R.id.btnEdit);
+        final Button btnShare = layoutView.findViewById(R.id.btnShare);
 
         final ImageView ivIcon = layoutView.findViewById(R.id.ivIcon);
         final TextView tvTitle = layoutView.findViewById(R.id.tvTitle);
@@ -87,6 +89,11 @@ public class ItemMenuDialog extends DialogFragment
         btnEdit.setOnClickListener(view ->
         {
             _listener.onEditClick(_entity);
+        });
+
+        btnShare.setOnClickListener(view ->
+        {
+            _listener.onShareClick(_entity);
         });
     }
 
