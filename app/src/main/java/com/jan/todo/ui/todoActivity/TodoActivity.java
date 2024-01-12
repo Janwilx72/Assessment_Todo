@@ -86,28 +86,6 @@ public class TodoActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        final IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
-        if (result != null)
-        {
-            if (result.getContents() != null)
-            {
-                final String qrCodeContent = result.getContents();
-
-                final Gson gson = new Gson();
-                final TodoItemEntity entity = gson.fromJson(qrCodeContent, TodoItemEntity.class);
-                entity.setId(0);
-                _viewmodel.insertTodoItem(entity);
-            }
-        }
-        else
-        {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
     {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -238,6 +216,35 @@ public class TodoActivity extends AppCompatActivity
         ii.setCaptureActivity(CaptureActivityPortrait.class);
         ii.setOrientationLocked(true);
         ii.initiateScan();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        final IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null)
+        {
+            if (result.getContents() != null)
+            {
+                try
+                {
+                    final String qrCodeContent = result.getContents();
+
+                    final Gson gson = new Gson();
+                    final TodoItemEntity entity = gson.fromJson(qrCodeContent, TodoItemEntity.class);
+                    entity.setId(0);
+                    _viewmodel.insertTodoItem(entity);
+                }
+                catch (final Exception e)
+                {
+                    Toast.makeText(getApplicationContext(), "Invalid QR code scanned", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+        else
+        {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
 
