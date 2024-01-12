@@ -1,6 +1,8 @@
 package com.jan.todo.ui.todoActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,7 +22,10 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
 import com.google.zxing.WriterException;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.jan.todo.R;
 import com.jan.todo.core.dagger.components.DaggerTodoComponent;
 import com.jan.todo.core.dagger.modules.TodoModule;
@@ -27,16 +33,16 @@ import com.jan.todo.core.database.entities.TodoItemEntity;
 import com.jan.todo.core.database.repositories.TodoRepository;
 import com.jan.todo.core.helpers.DateHelper;
 import com.jan.todo.core.helpers.IconHelper;
+import com.jan.todo.core.helpers.PermissionHelper;
 import com.jan.todo.core.helpers.QRCodeHelper;
 import com.jan.todo.core.models.IconModel;
+import com.jan.todo.ui.captureActivity.CaptureActivityPortrait;
 import com.jan.todo.ui.components.dialogs.ItemMenuDialog;
 import com.jan.todo.ui.components.dialogs.QRCodeDialog;
 import com.jan.todo.ui.components.dialogs.SortDialog;
 import com.jan.todo.ui.components.dialogs.TodoAddDialog;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +56,7 @@ public class TodoActivity extends AppCompatActivity
     public TodoRepository _todoRepository;
     @Inject public DateHelper _dateHelper;
     @Inject public QRCodeHelper _qrCodeHelper;
+    @Inject public PermissionHelper _permissionHelper;
 
     private SearchView _searchView;
 
@@ -76,6 +83,45 @@ public class TodoActivity extends AppCompatActivity
 
         initUi();
         initLiveData();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        final IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (result != null)
+        {
+            if (result.getContents() != null)
+            {
+                final String qrCodeContent = result.getContents();
+
+                final Gson gson = new Gson();
+                final TodoItemEntity entity = gson.fromJson(qrCodeContent, TodoItemEntity.class);
+                entity.setId(0);
+                _viewmodel.insertTodoItem(entity);
+            }
+        }
+        else
+        {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+    {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                startScanner();
+            }
+            else
+            {
+                Toast.makeText(getApplicationContext(), "Camera permissions are required to scan QR Codes", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void initUi()
@@ -171,9 +217,29 @@ public class TodoActivity extends AppCompatActivity
         {
             openSortDialog();
         }
+        else if (item.getItemId() == R.id.mnuScan)
+        {
+            if (_permissionHelper.checkPermission(this))
+            {
+                startScanner();
+            }
+            else
+            {
+                _permissionHelper.requestCameraPermission(this);
+            }
+        }
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void startScanner()
+    {
+        IntentIntegrator ii = new IntentIntegrator(this);
+        ii.setCaptureActivity(CaptureActivityPortrait.class);
+        ii.setOrientationLocked(true);
+        ii.initiateScan();
+    }
+
 
     private void openSortDialog()
     {

@@ -11,6 +11,7 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class QRCodeHelper
 {
     public Bitmap generateQRCodeImage(final String jsonData, final int width, final int height) throws WriterException
@@ -32,4 +33,7 @@ public class QRCodeHelper
 
         return bitmap;
     }
+
+
 }
+

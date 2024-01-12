@@ -57,7 +57,7 @@ public class TodoItemEntity
     @NonNull
     @Override
     public String toString() {
-        return "TodoItemEntity{" + "id=" + id +
+        return "{" + "id=" + id +
                 ", title='" + title + '\'' +
                 ", body='" + body + '\'' +
                 ", iconId=" + iconId +
