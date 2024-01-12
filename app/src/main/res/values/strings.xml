@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Todo</string>
+
+    <string name="hint_title">Title…</string>
+    <string name="hint_body">Description…</string>
+
+    <string name="button_due_date">Change Due Date</string>
+    <string name="text_due_date">Due Date…</string>
+
 </resources>
