@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.jan.todo.core.database.repositories.TodoRepository;
 import com.jan.todo.core.helpers.DateHelper;
+import com.jan.todo.core.helpers.DummyDataHelper;
 import com.jan.todo.core.helpers.PermissionHelper;
 import com.jan.todo.core.helpers.QRCodeHelper;
 
@@ -47,5 +48,11 @@ public class TodoModule
     public PermissionHelper providePermissionHelper()
     {
         return new PermissionHelper();
+    }
+
+    @Provides
+    public DummyDataHelper provideDummyDataHelper()
+    {
+        return new DummyDataHelper();
     }
 }

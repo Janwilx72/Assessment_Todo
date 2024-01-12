@@ -32,9 +32,11 @@ import com.jan.todo.core.dagger.modules.TodoModule;
 import com.jan.todo.core.database.entities.TodoItemEntity;
 import com.jan.todo.core.database.repositories.TodoRepository;
 import com.jan.todo.core.helpers.DateHelper;
+import com.jan.todo.core.helpers.DummyDataHelper;
 import com.jan.todo.core.helpers.IconHelper;
 import com.jan.todo.core.helpers.PermissionHelper;
 import com.jan.todo.core.helpers.QRCodeHelper;
+import com.jan.todo.core.helpers.StringHelper;
 import com.jan.todo.core.models.IconModel;
 import com.jan.todo.ui.captureActivity.CaptureActivityPortrait;
 import com.jan.todo.ui.components.dialogs.ItemMenuDialog;
@@ -57,6 +59,7 @@ public class TodoActivity extends AppCompatActivity
     @Inject public DateHelper _dateHelper;
     @Inject public QRCodeHelper _qrCodeHelper;
     @Inject public PermissionHelper _permissionHelper;
+    @Inject public DummyDataHelper _dummyDataHelper;
 
     private SearchView _searchView;
 
@@ -83,6 +86,20 @@ public class TodoActivity extends AppCompatActivity
 
         initUi();
         initLiveData();
+
+        checkDummyData();
+    }
+
+    private void checkDummyData()
+    {
+        if (!_dummyDataHelper.hasSetupDummyData(getApplicationContext()))
+        {
+            final List<TodoItemEntity> dummyEntities = _dummyDataHelper.getDummyData();
+            for (final TodoItemEntity entity : dummyEntities)
+            {
+                _viewmodel.insertTodoItem(entity);
+            }
+        }
     }
 
     @Override
@@ -172,11 +189,18 @@ public class TodoActivity extends AppCompatActivity
     private void filterItems(final String searchText)
     {
         _filteredTodoList.clear();
+        List<TodoItemEntity> tempList = new ArrayList<>();
 
-        List<TodoItemEntity> tempList = _todoList.stream()
-                .filter(x -> x.getTitle().toLowerCase().contains(searchText.toLowerCase()))
-                .collect(Collectors.toList());
-
+        if (!StringHelper.isNullOrWhiteSpace(searchText))
+        {
+            tempList = _todoList.stream()
+                    .filter(x -> x.getTitle().toLowerCase().contains(searchText.toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        else
+        {
+            tempList = _todoList;
+        }
         _filteredTodoList.addAll(tempList);
         _adapter.notifyDataSetChanged();
     }
