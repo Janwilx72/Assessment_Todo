@@ -1,5 +1,6 @@
 package com.jan.todo.core.database.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -51,5 +52,16 @@ public class TodoItemEntity
 
     public void setDueDate(final long dueDate) {
         this.dueDate = dueDate;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "{" + "id=" + id +
+                ", title='" + title + '\'' +
+                ", body='" + body + '\'' +
+                ", iconId=" + iconId +
+                ", dueDate=" + dueDate +
+                '}';
     }
 }
