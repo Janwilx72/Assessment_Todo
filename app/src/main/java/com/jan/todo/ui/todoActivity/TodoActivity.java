@@ -1,6 +1,7 @@
 package com.jan.todo.ui.todoActivity;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -256,8 +258,23 @@ public class TodoActivity extends AppCompatActivity
 
                     final Gson gson = new Gson();
                     final TodoItemEntity entity = gson.fromJson(qrCodeContent, TodoItemEntity.class);
-                    entity.setId(0);
-                    _viewmodel.insertTodoItem(entity);
+
+                    final String hash = _qrCodeHelper.generateHashFromString(entity.toString());
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Matches");
+                    builder.setMessage(hash);
+                    builder.setPositiveButton("Save", (dialogInterface, i) ->
+                    {
+                        entity.setId(0);
+                        _viewmodel.insertTodoItem(entity);
+                        dialogInterface.dismiss();
+                    });
+                    builder.setNegativeButton("Does not Match", (dialogInterface, i) ->
+                    {
+                        dialogInterface.dismiss();
+                        Toast.makeText(getApplicationContext(), "Entry not saved", Toast.LENGTH_SHORT).show();
+                    });
+                    builder.create().show();
                 }
                 catch (final Exception e)
                 {
@@ -394,12 +411,12 @@ public class TodoActivity extends AppCompatActivity
             try
             {
                 final Bitmap imgCode = _qrCodeHelper.generateQRCodeImage(itemEntity.toString(), 600, 600);
-                QRCodeDialog dialog = new QRCodeDialog(imgCode);
+                final QRCodeDialog dialog = new QRCodeDialog(imgCode, itemEntity);
                 dialog.show(getSupportFragmentManager(), "QRCodeDialog");
             }
             catch (final WriterException e)
             {
-                throw new RuntimeException(e);
+                Toast.makeText(getApplicationContext(), "Error creating QR code", Toast.LENGTH_SHORT).show();
             }
         }
 
